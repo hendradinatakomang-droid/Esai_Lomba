@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowchart Sistem LUHUR</title>
+    <style>
+        :root {
+            --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --color-text-primary: #333;
+            --color-text-secondary: #555;
+            --color-text-tertiary: #888;
+            --color-border-secondary: #ccc;
+            --color-border-tertiary: #eee;
+            --color-background-primary: #fff;
+            --color-background-secondary: #fafafa;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-sans); background: #f4f7f6; color: var(--color-text-primary); padding: 40px 20px; }
+
+        /* Container untuk membuat tampilan seperti card website di tengah layar */
+        .app-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .app-header h2 {
+            color: #1B5E20;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .tabs-nav { display: flex; overflow-x: auto; gap: 2px; border-bottom: 1px solid var(--color-border-tertiary); margin-bottom: 1.25rem; padding-bottom: 0; scrollbar-width: none; }
+        .tabs-nav::-webkit-scrollbar { display: none; }
+        .tab-btn { flex-shrink: 0; padding: 8px 13px; font-size: 13.5px; background: none; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; color: var(--color-text-secondary); white-space: nowrap; font-weight: 400; margin-bottom: -1px; transition: 0.2s ease;}
+        .tab-btn.active { color: var(--color-text-primary); border-bottom-color: #2E7D32; font-weight: 600; }
+        .tab-btn:hover:not(.active) { color: var(--color-text-primary); background: var(--color-background-secondary); }
+
+        .panel { display: none; animation: fadeIn 0.3s ease; }
+        .panel.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Flow layout */
+        .flow { display: flex; flex-direction: column; align-items: center; gap: 0; padding: .5rem 0 1rem; }
+        .flow-section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-tertiary); margin: 24px 0 8px; align-self: flex-start; padding-left: 4px; }
+
+        /* Connector arrow */
+        .arr-down { width: 2px; height: 22px; background: var(--color-border-secondary); position: relative; flex-shrink: 0; }
+        .arr-down::after { content: ''; position: absolute; bottom: -5px; left: -4px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--color-border-secondary); }
+
+        /* Node: start/end (pill) */
+        .n-start, .n-end { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 24px; border-radius: 99px; font-size: 13px; font-weight: 600; text-align: center; width: fit-content; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+        .n-start { background: #1B5E20; color: #E8F5E9; }
+        .n-end { background: #37474F; color: #ECEFF1; }
+
+        /* Node: process step */
+        .n-step { background: var(--color-background-primary); border: 1.5px solid var(--color-border-tertiary); border-radius: 6px; padding: 12px 16px; font-size: 14px; font-weight: 500; width: 100%; max-width: 400px; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .n-step .detail { font-size: 12px; color: var(--color-text-secondary); margin-top: 6px; line-height: 1.5; font-weight: 400;}
+        .n-step.success { border-color: #A5D6A7; background: #F1F8F2; color: #1B5E20; }
+        .n-step.success .detail { color: #2E7D32; }
+        .n-step.error { border-color: #EF9A9A; background: #FFF5F5; color: #B71C1C; }
+        .n-step.error .detail { color: #C62828; }
+        .n-step.money { border-color: #A5D6A7; background: #E8F5E9; color: #1B5E20; }
+        .n-step.info { border-color: #90CAF9; background: #F0F7FF; color: #0D47A1; }
+        .n-step.warn { border-color: #FFE082; background: #FFFDE7; color: #E65100; }
+
+        /* Node: decision */
+        .n-decision { background: #FFFDE7; border: 1.5px solid #FFD54F; border-radius: 6px; padding: 10px 16px; font-size: 13px; font-weight: 600; color: #E65100; text-align: center; width: 100%; max-width: 340px; position: relative; box-shadow: 0 2px 4px rgba(255,213,79,0.2);}
+        .n-decision::before { content: '◆'; font-size: 12px; margin-right: 6px; color: #FFA000; }
+
+        /* Branch: yes/no after decision */
+        .branch { width: 100%; max-width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; position: relative; margin-top: 0; }
+        .branch-side { display: flex; flex-direction: column; align-items: center; gap: 0; }
+        .branch-label { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 99px; margin-bottom: 0; text-align: center; width: fit-content; border: 1px solid transparent;}
+        .branch-label.yes { background: #E8F5E9; color: #2E7D32; border-color: #C8E6C9;}
+        .branch-label.no { background: #FFEBEE; color: #B71C1C; border-color: #FFCDD2;}
+
+        /* Split visual */
+        .split-bar { display: grid; grid-template-columns: 80fr 15fr 5fr; height: 14px; border-radius: 7px; overflow: hidden; margin: 12px 0; width: 100%; max-width: 400px; }
+        .split-bar .s1 { background: #2E7D32; }
+        .split-bar .s2 { background: #FFA726; }
+        .split-bar .s3 { background: #42A5F5; }
+        .split-legend { display: flex; gap: 15px; font-size: 12px; flex-wrap: wrap; justify-content: center;}
+        .split-legend span { display: flex; align-items: center; gap: 6px; }
+        .split-legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* Overview ecosystem */
+        .eco { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 15px; margin-bottom: 16px; align-items: center;}
+        .eco-card { border: 1.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px; font-size: 13px; }
+        .eco-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .eco-card p { font-size: 12.5px; color: var(--color-text-secondary); line-height: 1.6; }
+        .eco-arrow { display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--color-border-secondary); font-weight: bold;}
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="app-header">
+        <h2>Visualisasi Sistem LUHUR</h2>
+        <p style="font-size: 13px; color: #777;">Arsitektur Alur Transaksi dan Logika Bisnis</p>
+    </div>
+
+    <div class="tabs-nav">
+        <button class="tab-btn active" onclick="showTab(0)">🗺 Ekosistem</button>
+        <button class="tab-btn" onclick="showTab(1)">♻ Pengepul</button>
+        <button class="tab-btn" onclick="showTab(2)">🔨 Pengrajin</button>
+        <button class="tab-btn" onclick="showTab(3)">🛒 Konsumen</button>
+        <button class="tab-btn" onclick="showTab(4)">⚙ Platform</button>
+        <button class="tab-btn" onclick="showTab(5)">📊 Investor</button>
+        <button class="tab-btn" onclick="showTab(6)">💸 Split Payment</button>
+    </div>
+
+    <div class="panel active" id="panel-0">
+        <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:16px;text-align:center;">6 aktor utama dalam ekosistem LUHUR dan bagaimana mereka saling terhubung melalui platform.</div>
+        <div class="eco">
+        <div class="eco-card" style="border-color:#A5D6A7;background:#F1F8F2">
+            <h4 style="color:#1B5E20">♻ Desa / Pengepul</h4>
+            <p>Kumpulkan & sortir limbah upakara → setor ke sistem → terima pembayaran per kg + 5% dari setiap produk terjual</p>
+        </div>
+        <div class="eco-arrow">→</div>
+        <div class="eco-card" style="border-color:#90CAF9;background:#F0F7FF">
+            <h4 style="color:#1565C0">🔨 Pengrajin UMKM</h4>
+            <p>Klaim bahan baku murah dari LUHUR → produksi kerajinan → jual via Luhur-Craft → terima 80% revenue</p>
+        </div>
+        </div>
+        
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0 16px">
+        <div style="border:1.5px solid #A5D6A7;background:#E8F5E9;border-radius:var(--border-radius-lg);padding:16px 24px;text-align:center;width:100%">
+            <div style="font-size:18px;font-weight:700;color:#1B5E20">LUHUR Platform</div>
+            <div style="font-size:12px;color:#43A047;margin-top:4px">Luhur-Trade (B2B) + Luhur-Craft (B2C)</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px; background:#fff; padding:4px; border-radius:4px;">Split: 80% Pengrajin · 15% Platform · 5% Desa</div>
+        </div>
+        </div>
+
+        <div class="eco">
+        <div class="eco-card" style="border-color:#CE93D8;background:#FBF0FF">
+            <h4 style="color:#6A1B9A">🛒 Konsumen</h4>
+            <p>Browse produk eco-friendly → bayar via Midtrans → terima produk + poin reward → redeem voucher diskon</p>
+        </div>
+        <div class="eco-arrow">←</div>
+        <div class="eco-card" style="border-color:#FFCC80;background:#FFF8EE">
+            <h4 style="color:#E65100">📊 Investor</h4>
+            <p>Akses real-time dashboard → verifikasi disbursement via Midtrans → pantau KPI: GMV, limbah, pengrajin aktif</p>
+        </div>
+        </div>
+
+        <div style="border:1.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;margin-top:16px;background:var(--color-background-secondary); text-align:center;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--color-text-primary)">Alur Uang — Setiap Transaksi Produk</div>
+        <div style="display:flex; justify-content:center;">
+            <div class="split-bar"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div>
+        </div>
+        <div class="split-legend">
+            <span><div class="dot" style="background:#2E7D32"></div><b style="color:#1B5E20">80%</b> Pengrajin</span>
+            <span><div class="dot" style="background:#FFA726"></div><b style="color:#E65100">15%</b> Platform LUHUR</span>
+            <span><div class="dot" style="background:#42A5F5"></div><b style="color:#1565C0">5%</b> Dana Desa Mitra</span>
+        </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-1">
+    <div class="flow">
+        <div class="n-start">Mulai: Ada Limbah Upakara Terkumpul</div>
+        <div class="arr-down"></div>
+        <div class="n-step">Pilah limbah berdasarkan jenis<div class="detail">Organik ringan (bunga, janur, dupa) · Organik keras (bambu, kayu) · Semi-organik (kain, lilin) · Anorganik (plastik)</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Klasifikasi grade kualitas<div class="detail">Grade A: kering & bersih · Grade B: semi-kering · Grade C: perlu pengolahan lanjut</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Buka aplikasi LUHUR → input data batch<div class="detail">Isi: berat (kg), jenis limbah, grade, foto timbangan dari kamera langsung</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">GPS perangkat dalam radius 500m dari desa mitra?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Lanjut proses submit</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Input ditolak otomatis<div class="detail">Notif error: "Lokasi tidak valid — tidak berada di area desa mitra"</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Foto EXIF timestamp ≤ 10 menit yang lalu?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Foto valid</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Minta foto ulang<div class="detail">Foto lama / dari galeri tidak diterima</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Sistem generate QR Hash<div class="detail">SHA-256 (batch_id + weight + timestamp + village_id). Dicetak sebagai QR fisik → ditempel di karung</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Batch tersubmit — status: "collected"<div class="detail">Data masuk ke Luhur-Trade, tersedia untuk diklaim pengrajin</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Volume batch mencapai minimum pengiriman?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Koordinasi logistik LUHUR → jadwalkan pengiriman</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Belum</div>
+            <div class="arr-down"></div>
+            <div class="n-step warn">Limbah disimpan di titik kumpul sementara<div class="detail">Tunggu batch berikutnya sampai cukup volume</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Pengiriman ke pengrajin / gudang mitra</div>
+        <div class="arr-down"></div>
+        <div class="n-step">Dual-Sign Confirmation<div class="detail">Pengepul scan QR → Pengrajin scan QR dari perangkat berbeda dalam 2 jam</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">QR Hash cocok & dual-sign selesai dalam 2 jam?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Status: "Delivered" ✓<div class="detail">Transfer bahan baku selesai, tersedia di inventory pengrajin</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Alert anomali ke admin<div class="detail">Investigasi manual: kemungkinan fraud atau masalah logistik</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step money">Terima pembayaran per kg dari LUHUR<div class="detail">Harga sesuai jenis limbah. Transfer via wallet internal atau rekening bank</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step money">Terima 5% dana desa dari setiap produk terjual<div class="detail">Otomatis masuk ke village fund setiap kali split payment dieksekusi</div></div>
+        <div class="arr-down"></div>
+        <div class="n-end">Siklus berikutnya dimulai</div>
+    </div>
+    </div>
+
+    <div class="panel" id="panel-2">
+    <div class="flow">
+        <div class="n-start">Mulai: Pengrajin ingin bergabung LUHUR</div>
+        <div class="arr-down"></div>
+        <div class="n-step">Daftar (Register) di Luhur-Trade<div class="detail">Isi profil: nama, spesialisasi kerajinan, lokasi, nomor rekening bank</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Upload portofolio & dokumen KYC<div class="detail">Foto karya terdahulu, KTP, NPWP (jika ada), contoh produk jadi</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Admin LUHUR memverifikasi portofolio?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Disetujui</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Akun pengrajin aktif ✓<div class="detail">Mendapat akses dashboard Luhur-Trade</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Ditolak</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Notifikasi alasan penolakan<div class="detail">Pengrajin bisa revisi dan submit ulang</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Terima notifikasi: stok bahan baku tersedia<div class="detail">Push notification ketika ada batch grade A/B di area terdekat</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Buka dashboard → lihat daftar stok & harga bahan baku</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Stok yang dibutuhkan tersedia?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ada</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Klaim / beli bahan baku di dashboard</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Habis</div>
+            <div class="arr-down"></div>
+            <div class="n-step warn">Masuk waitlist<div class="detail">Dapat notif otomatis saat stok tersedia kembali</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Terima bahan baku → scan QR pada karung/batch</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">QR Hash valid? (rehash cocok dengan DB)</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Valid</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Bahan baku masuk inventory pengrajin ✓</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak Cocok</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Alert: Data Integrity Violation<div class="detail">Admin dinotifikasi, investigasi potensi pemalsuan data</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Proses produksi kerajinan dari limbah upakara<div class="detail">Sokasi bambu, lilin hias, sabun bunga, tas sesajen, dupa organik, dll</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Foto produk jadi + upload ke Luhur-Craft<div class="detail">Min. 3 foto dari sudut berbeda + tulis storytelling produk (asal bahan, proses, profil pengrajin)</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Admin review & setujui listing produk?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Disetujui</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Produk listed aktif di marketplace ✓</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Revisi</div>
+            <div class="arr-down"></div>
+            <div class="n-step warn">Feedback: perbaiki foto/deskripsi<div class="detail">Revisi dan upload ulang</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Notifikasi order masuk dari konsumen<div class="detail">Detail: produk, jumlah, alamat pengiriman, deadline kirim</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Kemas produk dengan rapi<div class="detail">Label "Produk Bersertifikat Budaya" + informasi singkat pengrajin</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Serahkan ke kurir J&T Express → input resi di dashboard</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Produk diterima konsumen tanpa masalah?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Oke</div>
+            <div class="arr-down"></div>
+            <div class="n-step money">Dana masuk ke wallet (80% dari harga produk)<div class="detail">Otomatis setelah split payment dieksekusi</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Komplain</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Proses dispute via admin<div class="detail">Foto bukti kerusakan, keputusan pengembalian dana, atau penggantian</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Request withdrawal ke rekening bank (kapan saja)<div class="detail">Proses via Midtrans Payout API, bukti transfer tersimpan di audit trail</div></div>
+        <div class="arr-down"></div>
+        <div class="n-end">Siklus produksi berikutnya</div>
+    </div>
+    </div>
+
+    <div class="panel" id="panel-3">
+    <div class="flow">
+        <div class="n-start">Mulai: Konsumen membuka aplikasi LUHUR</div>
+        <div class="arr-down"></div>
+        <div class="n-step">Browse / search produk kerajinan di Luhur-Craft<div class="detail">Filter: kategori, harga, asal bahan, desa pengrajin, eco-label</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Lihat detail produk<div class="detail">Foto, harga, storytelling bahan baku, profil pengrajin, asal desa, rating</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Konsumen tertarik & ingin membeli?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Masukkan ke keranjang belanja</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step warn">Lanjut browse produk lain atau keluar</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Buka keranjang → mulai checkout<div class="detail">Review item, isi alamat pengiriman, pilih jasa kirim</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Memiliki LuhurPoints dan ingin tukar?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step info">Tukar poin → diskon otomatis<div class="detail">1 poin = nominal diskon tertentu, langsung kurangi final amount</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step">Bayar harga penuh, lanjut ke pembayaran</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Pilih metode pembayaran<div class="detail">QRIS · Virtual Account Bank · Indomaret / Alfamart · Kartu Kredit/Debit</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Diarahkan ke halaman pembayaran Midtrans</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Pembayaran berhasil? (dalam 15 menit)</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Berhasil</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Order Confirmed ✓<div class="detail">Webhook LUHUR menerima konfirmasi dari Midtrans</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Gagal/Timeout</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Order dibatalkan otomatis<div class="detail">Bisa coba lagi atau ganti metode bayar</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Terima notifikasi konfirmasi order + info pengiriman<div class="detail">Nomor resi J&T, estimasi tiba, link tracking</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Tunggu pengiriman → tracking real-time di aplikasi</div>
+        <div class="arr-down"></div>
+        <div class="n-step">Paket tiba di tangan konsumen</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Produk sesuai ekspektasi?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Sesuai</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Konfirmasi penerimaan ✓<div class="detail">Dana ke pengrajin otomatis dicairkan sepenuhnya</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Ada Masalah</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Ajukan komplain via in-app chat<div class="detail">Foto bukti + deskripsi masalah → admin mediasi dalam 1x24 jam</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step money">+1 LuhurPoint per produk yang dibeli<div class="detail">Otomatis masuk ke point_ledger, berlaku 12 bulan</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Sudah terkumpul 10 LuhurPoints?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step money">Tukar 10 poin → voucher diskon pembelian berikutnya</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Belum</div>
+            <div class="arr-down"></div>
+            <div class="n-step warn">Kumpulkan terus, poin valid 12 bulan<div class="detail">Lihat progress di halaman Reward</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Ingin beli produk lagi?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Kembali ke halaman browse → repeat purchase</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step">Keluar aplikasi, saldo poin tersimpan</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-end">Selesai</div>
+    </div>
+    </div>
+
+    <div class="panel" id="panel-4">
+    <div class="flow">
+        <div class="n-start">Mulai: Admin login ke dashboard LUHUR</div>
+        <div class="arr-down"></div>
+        <div class="n-step">Monitor queue real-time<div class="detail">4 antrian paralel: batch baru · registrasi pengrajin · listing produk · order disputes</div></div>
+        
+        <div class="flow-section-label">Alur Verifikasi Batch Limbah</div>
+        <div class="n-step">Review batch masuk: cek foto, GPS, EXIF, berat</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Foto valid? GPS dalam geo-fence? Berat masuk akal?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Valid</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Approve batch, status "stored"<div class="detail">Tersedia untuk diklaim pengrajin</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Mencurigakan</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Tolak + kirim alasan ke pengepul<div class="detail">Catat sebagai pelanggaran jika berulang</div></div>
+        </div>
+        </div>
+        
+        <div class="flow-section-label">Alur Verifikasi Pengrajin Baru</div>
+        <div class="n-step">Review portofolio & dokumen KYC pengrajin</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Portofolio memenuhi standar kualitas LUHUR?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Layak</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Aktivasi akun, kirim welcome email</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Belum</div>
+            <div class="arr-down"></div>
+            <div class="n-step warn">Minta revisi atau tolak dengan alasan jelas</div>
+        </div>
+        </div>
+        
+        <div class="flow-section-label">Alur Review Produk Baru</div>
+        <div class="n-step">Review produk: foto, deskripsi, harga, storytelling, klaim eco-label</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Produk memenuhi standar listing Luhur-Craft?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Standar</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Listing aktif, produk tampil di marketplace</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Perlu Revisi</div>
+            <div class="arr-down"></div>
+            <div class="n-step warn">Feedback ke pengrajin: foto/deskripsi/harga<div class="detail">Listing ditunda sampai revisi selesai</div></div>
+        </div>
+        </div>
+        
+        <div class="flow-section-label">Monitoring Anomali (Harian)</div>
+        <div class="n-step">Cron job anomaly detection berjalan setiap pukul 02:00 WIB<div class="detail">Cek: rasio konversi berat, frekuensi batch, geo-consistency, pola disbursement</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Ada anomali terdeteksi?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">⚠ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Investigasi manual<div class="detail">Freeze akun sementara jika perlu, minta klarifikasi</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✓ Bersih</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Sistem berjalan normal, log aman</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Monitor status split payment harian<div class="detail">Pastikan semua transaksi "disbursed", tidak ada yang stuck di "pending" &gt; 24 jam</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Ada disbursement gagal?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✗ Ada</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Retry otomatis 3x → manual resolution<div class="detail">Cek validitas rekening penerima, koordinasi dengan Midtrans</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✓ Semua OK</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Investor dashboard terupdate real-time</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-end">Monitoring berlanjut 24/7</div>
+    </div>
+    </div>
+
+    <div class="panel" id="panel-5">
+    <div class="flow">
+        <div class="n-start">Mulai: Investor ingin memantau LUHUR</div>
+        <div class="arr-down"></div>
+        <div class="n-step">Login ke Investor Portal<div class="detail">Akun role "investor" — Row-Level Security: hanya bisa baca data agregat, bukan data personal pengguna</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Lihat KPI Real-time di halaman utama dashboard<div class="detail">Total GMV bulan ini · Limbah diproses (kg) · Pengrajin aktif · Take rate realisasi · Platform revenue</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Ingin drill-down ke modul tertentu?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step info">Pilih modul:
+            <div class="detail">
+                📈 Revenue Waterfall — breakdown GMV ke revenue bersih<br>
+                🗺 Waste Tracking Map — sebaran limbah per kecamatan<br>
+                🏆 Artisan Performance — ranking pengrajin by revenue<br>
+                💰 Financial Audit Trail — semua disbursement<br>
+                📊 Cohort Retention — repeat purchase rate<br>
+                ⚠ Supply Chain Integrity — rasio QR-verified vs anomali
+            </div>
+            </div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step">Tetap di halaman overview KPI</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Review Financial Audit Trail<div class="detail">Setiap baris disbursement menampilkan: timestamp · amount · artisan_id · midtrans_payout_id · status</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Ingin verifikasi disbursement secara independen?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step info">Salin Midtrans Payout ID → login ke Midtrans Dashboard sendiri → verifikasi langsung<div class="detail">Investor tidak bergantung pada laporan LUHUR</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step">Percaya pada data dashboard LUHUR</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Ingin export data untuk analisis sendiri?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step info">Export ke CSV — pilih: disbursements, waste_batches, atau point_ledger<div class="detail">Data mentah, siap dianalisis di Excel/Python/Tableau</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step">Analisis langsung di dashboard Metabase</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Bandingkan target vs aktual dari business plan<div class="detail">Proyeksi Cash Flow (Tabel 2.7) ditampilkan berdampingan angka aktual bulan berjalan</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Ada hal yang perlu dikomunikasikan ke manajemen LUHUR?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ada</div>
+            <div class="arr-down"></div>
+            <div class="n-step warn">Hubungi platform admin via saluran resmi<div class="detail">Email/WhatsApp Business yang terdaftar</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Tidak</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Session selesai, data aman tersimpan</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-end">Monitoring berikutnya (kapan saja, real-time)</div>
+    </div>
+    </div>
+
+    <div class="panel" id="panel-6">
+    <div class="flow">
+        <div class="n-start">Konsumen klik "Bayar" — Final Amount dikirim</div>
+        <div class="arr-down"></div>
+        <div class="n-step">LUHUR buat Charge Request ke Midtrans<div class="detail">Parameter: order_id (idempotency key), final_amount, metode pembayaran pilihan konsumen</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Konsumen menyelesaikan pembayaran di interface Midtrans<div class="detail">QRIS · VA Bank (BCA, Mandiri, BNI) · Indomaret/Alfamart · Kartu</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Pembayaran selesai dalam 15 menit?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Midtrans kirim payment webhook ke LUHUR</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Timeout</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Order expired otomatis<div class="detail">Status: "failed". Poin yang sempat di-debit di-rollback kembali</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Server LUHUR terima webhook dari Midtrans</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Verifikasi signature: SHA-512(order_id + status + amount + server_key) cocok?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Valid</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Lanjut proses split payment</div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Palsu</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">Tolak request, log sebagai security incident<div class="detail">Alert ke admin, kemungkinan serangan webhook injection</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">Ambil semua order_items dari DB<div class="detail">Tiap item membawa: artisan_id, subtotal, village_id asal bahan baku</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Hitung 3-way split untuk setiap item<div class="detail">80% → artisan_share · 15% → platform_fee · 5% → village_share</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step info">Eksekusi dalam 1 Database Transaction (ATOMIC)<div class="detail">Jika salah satu langkah gagal → SELURUHNYA di-rollback. Tidak ada uang yang "setengah tersalur"</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step money">Credit wallet pengrajin +80%<div class="detail">UPDATE users SET wallet_balance = wallet_balance + artisan_share WHERE user_id = artisan_id</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step money">Credit dana desa mitra +5%<div class="detail">UPDATE villages SET fund_balance = fund_balance + village_share WHERE village_id = material_village_id</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step money">Platform fee +15% masuk rekening operasional LUHUR</div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Semua credit berhasil dieksekusi?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Sukses</div>
+            <div class="arr-down"></div>
+            <div class="n-step success">Update order: split_status = "disbursed" ✓<div class="detail">Catat disbursed_at timestamp</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Error DB</div>
+            <div class="arr-down"></div>
+            <div class="n-step error">ROLLBACK semua → retry 3x → alert admin<div class="detail">Investigasi manual, uang aman di escrow Midtrans</div></div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-step">INSERT ke tabel disbursements (immutable)<div class="detail">Setiap baris: order_id, item_id, artisan_id, amount, village_id, village_amount, platform_fee, timestamp. TIDAK BISA dihapus/diubah</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step money">Kredit LuhurPoints ke konsumen (+1 per produk dibeli)<div class="detail">INSERT ke point_ledger: transaction_type = "earn_purchase", reference_id = order_id</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step">Kirim notifikasi push ke semua pihak simultan<div class="detail">✅ Konsumen: "Pembayaran berhasil, +N poin dikreditkan" · 💰 Pengrajin: "Dana Rp X masuk ke wallet" · 🏘 Desa: "Dana komunitas diperbarui"</div></div>
+        <div class="arr-down"></div>
+        <div class="n-step info">Investor dashboard terupdate real-time<div class="detail">GMV naik, disbursement log ditambah 1 baris, artisan wallet balance naik</div></div>
+        <div class="arr-down"></div>
+        <div class="n-decision">Pengrajin ingin cairkan saldo sekarang?</div>
+        <div class="branch">
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label yes">✓ Ya</div>
+            <div class="arr-down"></div>
+            <div class="n-step money">Request withdrawal → Midtrans Payout API → Dana ke rekening bank pengrajin<div class="detail">Bukti transfer tersimpan di audit trail</div></div>
+        </div>
+        <div class="branch-side">
+            <div class="arr-down"></div>
+            <div class="branch-label no">✗ Nanti</div>
+            <div class="arr-down"></div>
+            <div class="n-step">Saldo tersimpan di wallet, bisa dicairkan kapan saja</div>
+        </div>
+        </div>
+        <div class="arr-down"></div>
+        <div class="n-end">Transaksi selesai — siklus uang tertutup</div>
+    </div>
+    </div>
+
+</div>
+
+<script>
+function showTab(idx) {
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+    document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+}
+</script>
+</body>
+</html>
